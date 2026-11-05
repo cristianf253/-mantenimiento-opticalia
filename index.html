@@ -435,6 +435,13 @@ canvas.sig{display:block; width:100%; height:110px; border:1px solid var(--p-lin
 .who-pick button small{display:block; font-weight:400; font-size:11.5px; color:var(--muted); margin-top:2px;}
 .who-pick button.on{border-color:var(--brand); background:var(--brand-wash);}
 .login-err{color:var(--bad); font-size:13px; font-weight:600; min-height:1em;}
+.login-ok{color:var(--ok); font-size:13px; font-weight:600;}
+.linkbtn{background:none; border:none; padding:0; color:var(--brand-deep); font-weight:600; font-size:13px; cursor:pointer; text-decoration:underline; align-self:flex-start;}
+.session button .badge{display:inline-block; min-width:18px; padding:0 5px; margin-left:5px; border-radius:999px; background:#F5C04A; color:#063B52; font-size:11px; line-height:18px; text-align:center;}
+.sol-item{border:1px solid var(--line); border-radius:10px; padding:10px 12px; display:flex; flex-direction:column; gap:8px; background:var(--surface-2);}
+.sol-item .sol-meta{font-size:13px;} .sol-item .sol-meta small{display:block; color:var(--muted); margin-top:2px;}
+.sol-item .sol-acts{display:flex; gap:8px;}
+#dlgSol{max-width:420px;}
 .bar-status{display:flex; flex-wrap:wrap; align-items:center; gap:8px; max-width:920px; margin:0 auto 14px;}
 .pill{display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; letter-spacing:.03em; padding:4px 10px; border-radius:999px; white-space:nowrap;}
 .pill.borrador{background:var(--surface-2); color:var(--muted); border:1px solid var(--line);}
@@ -502,7 +509,9 @@ dialog h2{font-family:var(--display); font-size:18px; margin:0;}
       </div>
       <div class="field"><label for="lPass">Contraseña</label><input id="lPass" type="password" autocomplete="off" required></div>
       <div class="login-err" id="loginErr" role="alert"></div>
+      <div class="login-ok" id="loginOk" role="status" hidden></div>
       <button class="btn primary" type="submit" id="btnLogin" style="padding:12px;">Ingresar</button>
+      <button type="button" class="linkbtn" id="btnOlvido" hidden>¿Olvidaste tu contraseña?</button>
     </form>
   </div>
 </section>
@@ -515,7 +524,8 @@ dialog h2{font-family:var(--display); font-size:18px; margin:0;}
       <div class="app-title">Gestión de mantenimiento preventivo<span>Inventario de equipos, protocolos por fabricante y hoja de vida</span></div>
       <div class="session">
         <span class="who"><span class="live" id="liveDot" title="Conectando…"></span><span id="sessUser">—</span></span>
-        <button type="button" id="btnPass">Cambiar contraseña</button>
+        <button type="button" id="btnSol" class="solo-bio" title="Solicitudes de recuperación de contraseña">Solicitudes<span class="badge" id="solBadge" hidden>0</span></button>
+        <button type="button" id="btnPass" class="solo-bio">Cambiar contraseña</button>
         <button type="button" id="btnSalir">Salir</button>
       </div>
     </div>
@@ -1071,6 +1081,30 @@ dialog h2{font-family:var(--display); font-size:18px; margin:0;}
   <div class="field"><label for="np2">Repetir contraseña</label><input id="np2" type="password" autocomplete="new-password" minlength="8"></div>
   <div class="login-err" id="passErr"></div>
   <div class="form-actions" style="margin:0"><button class="btn primary" type="button" id="btnPassOk">Guardar</button><button class="btn ghost" type="submit" value="cancel">Cancelar</button></div>
+</form></dialog>
+<dialog id="dlgPrimer"><form method="dialog" id="primerForm">
+  <h2>Crea tu contraseña</h2>
+  <p class="hint">Es tu primer ingreso con la contraseña asignada. Para continuar, crea una contraseña nueva para el usuario <b id="primerUser"></b>.</p>
+  <div class="field"><label for="pp1">Nueva contraseña</label><input id="pp1" type="password" autocomplete="new-password" minlength="8"></div>
+  <div class="field"><label for="pp2">Repetir contraseña</label><input id="pp2" type="password" autocomplete="new-password" minlength="8"></div>
+  <div class="login-err" id="primerErr"></div>
+  <div class="form-actions" style="margin:0"><button class="btn primary" type="button" id="btnPrimerOk">Guardar y continuar</button><button class="btn ghost" type="button" id="btnPrimerSalir">Salir</button></div>
+</form></dialog>
+<dialog id="dlgOlvido"><form method="dialog" id="olvidoForm">
+  <h2>Recuperar contraseña</h2>
+  <p class="hint">Escribe la nueva contraseña para el usuario <b>Opticalia</b>. El usuario Biomédicos recibirá la solicitud y, cuando la apruebe, podrás ingresar con ella.</p>
+  <div class="field"><label for="op1">Nueva contraseña</label><input id="op1" type="password" autocomplete="new-password" minlength="8"></div>
+  <div class="field"><label for="op2">Repetir contraseña</label><input id="op2" type="password" autocomplete="new-password" minlength="8"></div>
+  <div class="field"><label for="oNota">Nombre o mensaje (opcional)</label><input id="oNota" type="text" maxlength="120" placeholder="Ej.: Laura, sede centro"></div>
+  <div class="login-err" id="olvidoErr"></div>
+  <div class="form-actions" style="margin:0"><button class="btn primary" type="button" id="btnOlvidoOk">Enviar solicitud</button><button class="btn ghost" type="submit" value="cancel">Cancelar</button></div>
+</form></dialog>
+<dialog id="dlgSol"><form method="dialog">
+  <h2>Solicitudes de contraseña</h2>
+  <p class="hint">Al aprobar, la contraseña que eligió el usuario Opticalia queda activa de inmediato.</p>
+  <div id="solLista" style="display:flex; flex-direction:column; gap:8px;"></div>
+  <div class="login-err" id="solErr"></div>
+  <div class="form-actions" style="margin:0"><button class="btn ghost" type="submit" value="cancel">Cerrar</button></div>
 </form></dialog>
 <div class="toast" id="toast" hidden></div>
 
@@ -2915,6 +2949,42 @@ async function pdfInventario(){
 let usuarioElegido = "Biomedicos";
 function mostrarLogin(msg){
   $("app").hidden = true; $("login").hidden = false; $("loginErr").textContent = msg || ""; $("lPass").value = ""; $("btnLogin").disabled = false; $("btnLogin").textContent = "Ingresar";
+  actualizarOlvido(); revisarSolicitudPropia();
+}
+const SOL_KEY = "opticalia-mtto-solicitud";
+function actualizarOlvido(){ $("btnOlvido").hidden = usuarioElegido!=="Opticalia"; if(usuarioElegido!=="Opticalia") $("loginOk").hidden = true; else if($("loginOk").textContent) $("loginOk").hidden = false; }
+async function revisarSolicitudPropia(){
+  let id = null; try{ id = localStorage.getItem(SOL_KEY); }catch(e){}
+  if(!id || !sb) return;
+  const {data, error} = await sb.rpc("estado_solicitud", {sid:id});
+  if(error) return;
+  const msgs = {pendiente:"Tu solicitud de nueva contraseña está pendiente de aprobación por Biomédicos.",
+    aprobada:"Biomédicos aprobó tu solicitud: ya puedes ingresar con tu nueva contraseña.",
+    rechazada:"Biomédicos rechazó tu solicitud de cambio de contraseña. Comunícate con ellos."};
+  const m = msgs[data] || "";
+  $("loginOk").textContent = m; $("loginOk").style.color = data==="rechazada" ? "var(--bad)" : "";
+  $("loginOk").hidden = !m || usuarioElegido!=="Opticalia";
+  if(data!=="pendiente"){ try{ if(data==="aprobada" || data==="rechazada"){ setTimeout(()=>{ try{ localStorage.removeItem(SOL_KEY); }catch(e){} }, 0); } else localStorage.removeItem(SOL_KEY); }catch(e){} }
+}
+function forzarCambioClave(){
+  return new Promise(resolve=>{
+    const d = $("dlgPrimer");
+    $("pp1").value = ""; $("pp2").value = ""; $("primerErr").textContent = ""; $("primerUser").textContent = NOMBRE_USUARIO;
+    const fin = ok=>{ $("btnPrimerOk").onclick = null; $("btnPrimerSalir").onclick = null; d.oncancel = null; d.close(); resolve(ok); };
+    d.oncancel = ev=> ev.preventDefault();
+    $("btnPrimerSalir").onclick = ()=> fin(false);
+    $("btnPrimerOk").onclick = async ()=>{
+      const a = $("pp1").value, b = $("pp2").value;
+      if(a.length < 8){ $("primerErr").textContent = "La contraseña debe tener al menos 8 caracteres."; return; }
+      if(a !== b){ $("primerErr").textContent = "Las contraseñas no coinciden."; return; }
+      $("btnPrimerOk").disabled = true;
+      const {error} = await sb.rpc("cambiar_mi_clave", {nueva:a});
+      $("btnPrimerOk").disabled = false;
+      if(error){ $("primerErr").textContent = errMsg(error); return; }
+      toast("Contraseña creada"); fin(true);
+    };
+    d.showModal(); $("pp1").focus();
+  });
 }
 async function ingresar(ev){
   ev.preventDefault();
@@ -2928,9 +2998,13 @@ async function ingresar(ev){
 }
 async function iniciarSesion(session){
   ME = session.user;
-  const {data: perfil, error} = await sb.from("perfiles").select("rol,nombre").eq("user_id", ME.id).maybeSingle();
+  const {data: perfil, error} = await sb.from("perfiles").select("*").eq("user_id", ME.id).maybeSingle();
   if(error || !perfil){ await sb.auth.signOut(); mostrarLogin(error ? errMsg(error) : "Este usuario no tiene un rol asignado."); return; }
   ROL = perfil.rol; NOMBRE_USUARIO = perfil.nombre;
+  if(perfil.debe_cambiar === true){
+    const ok = await forzarCambioClave();
+    if(!ok){ await sb.auth.signOut(); mostrarLogin("Debes crear una contraseña nueva para ingresar."); return; }
+  }
   document.body.classList.toggle("rol-biomedico", ROL==="biomedico");
   document.body.classList.toggle("rol-opticalia", ROL==="opticalia");
   $("btnNuevo").disabled = ROL!=="biomedico";
@@ -2941,6 +3015,7 @@ async function iniciarSesion(session){
   suscribir();
   setView("inv");
   if(ROL==="biomedico") sembrarDocumentos().then(()=> sembrarReportes2025());
+  if(ROL==="biomedico") cargarSolicitudes(true);
   if(ROL==="opticalia"){ const pend = protocolos.filter(p=>p.estado==="pendiente").length; if(pend) toast(`Tienes ${pend} protocolo${pend>1?"s":""} pendiente${pend>1?"s":""} de aprobación`, 4500); }
 }
 async function cargarTodo(){
@@ -2965,6 +3040,36 @@ async function cargarTodo(){
     if(!hojaDirty) renderHoja(currentItem());
   }
 }
+let solicitudes = [];
+async function cargarSolicitudes(avisar){
+  if(ROL!=="biomedico") return;
+  const {data, error} = await sb.from("solicitudes_clave").select("*").eq("estado","pendiente").order("creado_en", {ascending:false});
+  if(error) return;
+  solicitudes = data || []; pintarSolicitudes();
+  if(avisar && solicitudes.length) toast(`Hay ${solicitudes.length} solicitud${solicitudes.length>1?"es":""} de cambio de contraseña de Opticalia`, 5000);
+}
+function pintarSolicitudes(){
+  const n = solicitudes.length; $("solBadge").textContent = n; $("solBadge").hidden = !n;
+  $("solLista").innerHTML = n ? solicitudes.map(s=>`<div class="sol-item"><div class="sol-meta"><b>Usuario Opticalia</b> pide una contraseña nueva${s.nota ? " · " + esc(s.nota) : ""}<small>${esc(fmtFechaHora(new Date(s.creado_en)))}</small></div>
+    <div class="sol-acts"><button class="btn primary sm" type="button" data-sid="${s.id}" data-ok="1">Aprobar</button><button class="btn ghost sm" type="button" data-sid="${s.id}" data-ok="0">Rechazar</button></div></div>`).join("")
+    : `<p class="hint" style="margin:0">No hay solicitudes pendientes.</p>`;
+}
+function cambioSolicitud(pl){
+  if(ROL!=="biomedico") return;
+  if(pl.eventType==="INSERT" && pl.new && pl.new.estado==="pendiente"){
+    toast("Opticalia solicita aprobar un cambio de contraseña", 6000);
+    try{ if(window.Notification && Notification.permission==="granted") new Notification("Mantenimiento Opticalia", {body:"Opticalia solicita aprobar un cambio de contraseña."}); }catch(e){}
+  }
+  cargarSolicitudes(false);
+}
+async function resolverSolicitud(sid, aprobar){
+  if(aprobar && !confirm("¿Aprobar el cambio? La contraseña que eligió Opticalia quedará activa de inmediato.")) return;
+  $("solErr").textContent = "";
+  const {error} = await sb.rpc("resolver_solicitud", {sid, aprobar});
+  if(error){ $("solErr").textContent = errMsg(error); return; }
+  toast(aprobar ? "Solicitud aprobada: Opticalia ya puede ingresar con su nueva contraseña" : "Solicitud rechazada", 4500);
+  cargarSolicitudes(false);
+}
 function setLive(on){ const d = $("liveDot"); d.classList.toggle("on", on); d.title = on ? "En línea: los cambios se sincronizan en tiempo real" : "Reconectando…"; }
 let fueDesconectado = false;
 function suscribir(){
@@ -2976,6 +3081,7 @@ function suscribir(){
     .on("postgres_changes", {event:"*", schema:"public", table:"config"}, cambioConfig)
     .on("postgres_changes", {event:"*", schema:"public", table:"reportes_cargados"}, cambioCargado)
     .on("postgres_changes", {event:"*", schema:"public", table:"documentos"}, cambioDocumento)
+    .on("postgres_changes", {event:"*", schema:"public", table:"solicitudes_clave"}, cambioSolicitud)
     .subscribe(st=>{
       if(st==="SUBSCRIBED"){ setLive(true); if(fueDesconectado){ fueDesconectado=false; cargarTodo(); } }
       else if(st==="CHANNEL_ERROR" || st==="TIMED_OUT" || st==="CLOSED"){ setLive(false); fueDesconectado = true; }
@@ -3252,8 +3358,27 @@ document.querySelectorAll("img.logo-img").forEach(i=> i.src = LOGO);
 document.querySelectorAll(".who-pick button").forEach(b=> b.addEventListener("click", ()=>{
   usuarioElegido = b.dataset.u;
   document.querySelectorAll(".who-pick button").forEach(x=>{ x.classList.toggle("on", x===b); x.setAttribute("aria-checked", x===b ? "true" : "false"); });
+  actualizarOlvido();
   $("lPass").focus();
 }));
+$("btnOlvido").addEventListener("click", ()=>{ ["op1","op2","oNota"].forEach(i=> $(i).value=""); $("olvidoErr").textContent=""; $("dlgOlvido").showModal(); });
+$("btnOlvidoOk").addEventListener("click", async ()=>{
+  const a = $("op1").value, b = $("op2").value;
+  if(a.length < 8){ $("olvidoErr").textContent = "La contraseña debe tener al menos 8 caracteres."; return; }
+  if(a !== b){ $("olvidoErr").textContent = "Las contraseñas no coinciden."; return; }
+  if(!sb){ $("olvidoErr").textContent = "Sin conexión. Recarga la página."; return; }
+  $("btnOlvidoOk").disabled = true;
+  const {data, error} = await sb.rpc("solicitar_recuperacion", {nueva:a, nota:$("oNota").value.trim() || null});
+  $("btnOlvidoOk").disabled = false;
+  if(error){ $("olvidoErr").textContent = errMsg(error); return; }
+  try{ localStorage.setItem(SOL_KEY, data); }catch(e){}
+  $("dlgOlvido").close();
+  $("loginErr").textContent = ""; $("loginOk").style.color = "";
+  $("loginOk").textContent = "Solicitud enviada. Cuando Biomédicos la apruebe podrás ingresar con tu nueva contraseña."; $("loginOk").hidden = false;
+});
+$("btnSol").addEventListener("click", ()=>{ $("solErr").textContent=""; pintarSolicitudes(); $("dlgSol").showModal(); cargarSolicitudes(false);
+  try{ if(window.Notification && Notification.permission==="default") Notification.requestPermission(); }catch(e){} });
+$("solLista").addEventListener("click", ev=>{ const b = ev.target.closest("button[data-sid]"); if(b) resolverSolicitud(b.dataset.sid, b.dataset.ok==="1"); });
 $("loginForm").addEventListener("submit", ingresar);
 $("btnSalir").addEventListener("click", async ()=>{
   if(hayCambios() && !confirm("Tienes cambios sin guardar. ¿Salir de todas formas?")) return;
@@ -3266,7 +3391,8 @@ $("btnPassOk").addEventListener("click", async ()=>{
   const a = $("np1").value, b = $("np2").value;
   if(a.length < 8){ $("passErr").textContent = "La contraseña debe tener al menos 8 caracteres."; return; }
   if(a !== b){ $("passErr").textContent = "Las contraseñas no coinciden."; return; }
-  const {error} = await sb.auth.updateUser({password:a});
+  let {error} = await sb.rpc("cambiar_mi_clave", {nueva:a});
+  if(error && /Could not find the function|schema cache/i.test(error.message||"")) ({error} = await sb.auth.updateUser({password:a}));
   if(error){ $("passErr").textContent = errMsg(error); return; }
   $("dlgPass").close(); toast("Contraseña actualizada");
 });
