@@ -1731,6 +1731,86 @@ T.perforadora = {
   specs:["Perforadora para montaje de lentes al aire: perforado, ranurado y escotadura"],
   rt:{vmax:"Verificar en placa", vmin:"Verificar en placa", frec:"60 Hz", vida:"8 años (estimada)", temp:"Ambiente"}
 };
+T.foroptero_dig = {
+  nombre:"Foróptero digital (refractor automático)", grupo:"diag", periodicidad:"Semestral", riesgo:"I", uso:"Diagnóstico", tec:"Electrónico", mov:"Fijo", fuentes:["Electricidad"],
+  seg:"medico", herr:"optico", elec:"medico", herrExtra:["Lensómetro calibrado para verificar lentes"],
+  checks:[
+    {t:"Inspección física", i:[
+      "Cabezal sin golpes ni fisuras; cubiertas y tapas completas",
+      "Ventanas de observación limpias, sin rayones, polvo ni hongos",
+      "Protectores faciales completos y limpios",
+      "Brazo de soporte firme; gira y bloquea; cable del cabezal sin tensión",
+      "Consola o panel de control sin golpes; pantalla táctil y teclas sin daños",
+      "Cable de alimentación, adaptador, clavija y polo a tierra sin daños",
+      "Cable o enlace de comunicación cabezal–consola (y con la pantalla de optotipos) en buen estado"]},
+    {t:"Pruebas funcionales", i:[
+      "Encendido y autoprueba (inicialización de motores) sin mensajes de error",
+      "Esferas: cambio motorizado en pasos de 0,25 D en todo el rango, sin ruidos ni saltos",
+      "Cilindros: cambio en pasos de 0,25 D y eje 0–180° sincronizado con la consola",
+      "Cilindros cruzados de Jackson: giro y volteo automáticos siguiendo el eje",
+      "Prismas: rotación y valor mostrado coinciden",
+      "Lentes auxiliares (O, R, PH, OC, Maddox, filtros, ±0,50) se posicionan correctamente",
+      "Ajuste de distancia pupilar (lejos/cerca) con valor coherente en pantalla",
+      "Convergencia automática para visión próxima",
+      "Comunicación con la pantalla de optotipos y transferencia de datos (si aplica)",
+      "Programas de examen y memoria de datos funcionan; apagado correcto"]}
+  ],
+  acts:[
+    "Limpieza externa del cabezal y la consola con paño apenas humedecido en alcohol isopropílico al 70 %",
+    "Limpieza de las ventanas de observación con pera y papel para lentes, sin desmontar lentes internas",
+    "Retiro y desinfección de los protectores faciales",
+    "Limpieza de la pantalla táctil con paño de microfibra seco",
+    "Ajuste de tornillería del brazo y del soporte",
+    "Verificación de lentes con lensómetro calibrado",
+    "Colocación del cobertor antipolvo al finalizar"],
+  meds:[
+    {p:"Esfera +3,00 D medida con lensómetro", r:"+3,00 D ±0,12 D"},
+    {p:"Esfera −3,00 D medida con lensómetro", r:"−3,00 D ±0,12 D"},
+    {p:"Cilindro −1,00 D, eje 90°", r:"−1,00 D ±0,12 D / ±2°"},
+    {p:"Distancia pupilar mostrada vs. medida con regla", r:"±1 mm"}],
+  prec:[
+    "No forzar manualmente los discos ni el cabezal: los mueven motores y se pueden desajustar",
+    "No lubricar mecanismos internos; esa intervención la hace solo el servicio técnico autorizado",
+    "No aplicar líquidos directamente sobre el cabezal, la consola ni la pantalla táctil",
+    "Si aparece un error de motor o la lente no coincide con el valor mostrado, retirar de uso y enviar a servicio técnico"],
+  specs:["Foróptero digital (refractor automático) con cabezal motorizado y consola de control","Rangos de esfera, cilindro, eje y prisma según el manual del fabricante","Verificar alimentación y consumo en la placa del equipo"],
+  rt:{vida:"10 años (estimada)", temp:"10–35 °C (operación)"}
+};
+T.pantalla = {
+  nombre:"Pantalla de agudeza visual (optotipos)", grupo:"diag", periodicidad:"Semestral", riesgo:"I", uso:"Diagnóstico", tec:"Electrónico", mov:"Fijo", fuentes:["Electricidad"],
+  seg:"medico", herr:"optico", elec:"medico", herrExtra:["Cinta métrica o distanciómetro"],
+  checks:[
+    {t:"Inspección física", i:[
+      "Carcasa y marco sin golpes ni fisuras",
+      "Pantalla sin rayones, manchas ni píxeles dañados",
+      "Soporte de pared o base firme y nivelado",
+      "Cable de alimentación, adaptador, clavija y polo a tierra sin daños",
+      "Control remoto completo, con tapa y baterías en buen estado"]},
+    {t:"Pruebas funcionales", i:[
+      "Encendido sin mensajes de error",
+      "Control remoto responde desde la posición del examinador",
+      "Optotipos nítidos, centrados y con buen contraste en todas las líneas",
+      "Pruebas especiales disponibles (rojo-verde, reloj astigmático, Worth, polarizadas, Ishihara, etc. según el modelo)",
+      "Calibración de distancia del examen configurada según la distancia real del consultorio",
+      "Brillo uniforme en toda la pantalla",
+      "Comunicación con el foróptero digital (si aplica)",
+      "Apagado correcto"]}
+  ],
+  acts:[
+    "Limpieza de la pantalla con paño de microfibra seco o apenas humedecido en agua destilada",
+    "Limpieza externa de carcasa y control remoto con paño apenas humedecido en alcohol isopropílico al 70 %",
+    "Verificación de la fijación del soporte",
+    "Cambio de baterías del control remoto (si aplica)",
+    "Verificación de la distancia de examen configurada"],
+  meds:[
+    {p:"Distancia paciente–pantalla", r:"Igual a la configurada en el equipo (±5 cm)"}],
+  prec:[
+    "No usar alcohol, amoníaco ni limpiavidrios sobre la pantalla: daña la capa antirreflejo",
+    "No dejar la pantalla encendida sin uso por periodos largos",
+    "Si cambia la distancia del consultorio, recalibrar la distancia de examen en el menú del equipo"],
+  specs:["Pantalla LCD de optotipos para medición de agudeza visual","Distancia de examen y pruebas disponibles según el manual del fabricante","Verificar alimentación y consumo en la placa del equipo"],
+  rt:{vida:"8 años (estimada)", temp:"Ambiente"}
+};
 T.generico = {
   nombre:"Genérico (otro equipo)", grupo:"diag", periodicidad:"Semestral", riesgo:"I", uso:"Diagnóstico", tec:"Electrónico", mov:"Fijo", fuentes:["Electricidad"],
   seg:"medico", herr:"optico", elec:"medico", herrExtra:[],
@@ -2159,15 +2239,34 @@ function openForm(item){
   $("iEquipo").focus();
 }
 function closeForm(){ $("formPanel").hidden = true; editingUid = null; }
+const TIPO_POR_NOMBRE = [
+  [/FORO?PTE?R.*DIGITAL|REFRACTOR.*(AUTOM|DIGITAL)/, "foroptero_dig"], [/TONOMETR/, "tonometro"],
+  [/AUTORREFRACT|AUTOQUERAT|QUERATOMETR|REFRACTOMETR/, "autoref"], [/HENDIDURA|BIOMICROSCOP/, "lampara"],
+  [/FORO?PTE?R|REFRACTOR/, "foroptero"], [/UNIDAD/, "unidad"], [/LENSOMETR/, "lensometro"],
+  [/ESTUCHE/, "estuche"], [/KIT DE DIAG|DIAGNOSTICO DE PARED|PARED/, "pared"], [/BIOMETR|PAQUIMETR/, "biometro"],
+  [/RANURADOR/, "ranuradora"], [/BISELADORA AUTOM/, "biseladora"], [/SCAN|TRAZADOR/, "trazador"],
+  [/CORTADORA|BISELADORA MANUAL/, "bismanual"], [/FOTOCROM/, "fotocromatico"], [/CALENTADOR/, "calentador"],
+  [/PULIDORA/, "pulidora"], [/PERFORADORA/, "perforadora"], [/PANTALLA|OPTOTIPO|AGUDEZA|PROYECTOR/, "pantalla"]
+];
+function tipoSugerido(nombre){
+  const n = String(nombre||"").toUpperCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+  const m = TIPO_POR_NOMBRE.find(([rx])=> rx.test(n));
+  return m && T[m[1]] ? m[1] : null;
+}
+function avisoTipo(nombre, tipo){
+  const sug = tipoSugerido(nombre);
+  return (sug && tipo && sug!==tipo) ? `Atención: el nombre del equipo sugiere el protocolo de ${T[sug].nombre.toLowerCase()}, pero está elegido ${T[tipo].nombre.toLowerCase()}. ` : "";
+}
 function updatePerfilHint(){
   const tipo = $("iTipo").value;
   const pk = tipo ? perfilDe({modelo:$("iModelo").value, marca:$("iMarca").value, tipo}) : null;
-  $("perfilHint").textContent = pk ? "Este modelo tiene especificaciones del fabricante registradas: se agregarán al protocolo." :
-    (tipo ? "Se aplicará el protocolo de " + T[tipo].nombre.toLowerCase() + ". Complete las especificaciones con la placa del equipo." : "Elija el tipo de protocolo que corresponde al equipo.");
+  $("perfilHint").textContent = avisoTipo($("iEquipo").value, tipo) + (pk ? "Este modelo tiene especificaciones del fabricante registradas: se agregarán al protocolo." :
+    (tipo ? "Se aplicará el protocolo de " + T[tipo].nombre.toLowerCase() + ". Complete las especificaciones con la placa del equipo." : "Elija el tipo de protocolo que corresponde al equipo."));
 }
 async function guardarEquipo(){
   const up = v => v.trim().toUpperCase();
   const equipo = up($("iEquipo").value), tipo = $("iTipo").value;
+  if(avisoTipo(equipo, tipo) && !confirm(avisoTipo(equipo, tipo) + "¿Guardar de todas formas?")) return;
   const nRaw = $("iN").value.trim();
   const n = nRaw === "" ? nextN() : Number(nRaw);
   if(!equipo){ $("formError").textContent = "Escribe el nombre del equipo."; $("iEquipo").focus(); return; }
@@ -2335,8 +2434,9 @@ function updateProgress(){
   $("progress").innerHTML = `<span class="stat"><b>${done}/${cks.length}</b>ítems verificados</span><span class="stat"><b>${a}/${acts.length}</b>actividades</span>` + (no ? `<span class="stat" style="color:var(--bad)"><b style="color:var(--bad)">${no}</b>en NO</span>` : "");
 }
 function renderHistList(){ if($("viewRep").classList.contains("active")) renderReportes(); }
+function equipoDeProtocolo(row){ return (row && equipos.find(e=>e.id===row.equipo_id)) || currentItem(); }
 function abrirProtocolo(row){
-  const it = currentItem(); if(!it) return;
+  const it = equipoDeProtocolo(row); if(!it) return;
   protActual = row || null; protDirty = false; $("protBanner").hidden = true;
   const sinNada = !row && !isBio();
   $("protEmpty").hidden = !sinNada; $("sheetProt").hidden = sinNada; $("protBar").hidden = sinNada;
@@ -2383,7 +2483,7 @@ let protEditando = false;
 function protEditableAhora(){ return protEditando; }
 
 async function guardarProtocolo(estadoDestino){
-  const it = currentItem(); if(!it) return;
+  const it = equipoDeProtocolo(protActual); if(!it) return;
   const d = leerDoc();
   if(estadoDestino==="pendiente"){
     const faltan = [];
@@ -2886,6 +2986,7 @@ async function pdfAnio(it, anio){
 function verReporte(pid){
   const row = protocolos.find(p=>p.id===pid); if(!row) return;
   if(protDirty && protEditableAhora() && !(protActual && protActual.id===pid) && !confirm("Tienes cambios sin guardar en el protocolo abierto. ¿Descartarlos?")) return;
+  if(row.equipo_id!==currentUid){ selectEquipo(row.equipo_id); if(currentUid!==row.equipo_id) return; }
   cerrarAnio(); setView("prot"); abrirProtocolo(row);
 }
 function clonarProtocolos(rows){
@@ -2895,7 +2996,7 @@ function clonarProtocolos(rows){
   if(!vista){ $("viewProt").classList.add("active"); $("viewProt").style.cssText = "position:fixed;left:-12000px;top:0;width:920px;display:block"; }
   for(const p of rows){ abrirProtocolo(p); Object.values(pads).forEach(x=>x.resize()); nodos.push(clonEstatico($("sheetProt"))); }
   if(!vista){ $("viewProt").classList.remove("active"); $("viewProt").style.cssText = ""; }
-  if(guardado.doc){ protActual = guardado.row; renderDoc(it, guardado.doc, guardado.row); aplicarPermisosProt(); protDirty = true; }
+  if(guardado.doc){ protActual = guardado.row; renderDoc(equipoDeProtocolo(guardado.row), guardado.doc, guardado.row); aplicarPermisosProt(); protDirty = true; }
   else abrirProtocolo(guardado.row);
   return nodos;
 }
@@ -3401,7 +3502,7 @@ document.querySelectorAll(".tab").forEach(b=> b.addEventListener("click", ()=> s
 $("btnNuevo").addEventListener("click", ()=>{ if(isBio()) openForm(null); });
 $("btnCancelar").addEventListener("click", closeForm);
 $("btnGuardar").addEventListener("click", guardarEquipo);
-["iTipo","iModelo","iMarca"].forEach(id=> $(id).addEventListener("input", updatePerfilHint));
+["iTipo","iModelo","iMarca","iEquipo"].forEach(id=> $(id).addEventListener("input", updatePerfilHint));
 $("formPanel").addEventListener("keydown", ev=>{ if(ev.key==="Enter" && ev.target.tagName==="INPUT"){ ev.preventDefault(); guardarEquipo(); } });
 $("fBuscar").addEventListener("input", renderInventario);
 $("locChips").addEventListener("click", ev=>{ const b=ev.target.closest(".loc-chip"); if(!b) return; filtroUbic=b.dataset.u; renderInventario(); });
