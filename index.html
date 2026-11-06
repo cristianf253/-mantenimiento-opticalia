@@ -443,6 +443,8 @@ canvas.sig{display:block; width:100%; height:110px; border:1px solid var(--p-lin
 .sol-item .sol-acts{display:flex; gap:8px;}
 #dlgSol{max-width:420px;}
 .bar-status{display:flex; flex-wrap:wrap; align-items:center; gap:8px; max-width:920px; margin:0 auto 14px;}
+.btn.volver{font-weight:700; display:inline-flex; align-items:center; gap:6px;}
+.btn.volver::before{content:"\2190"; font-size:1.1em; line-height:1;}
 .pill{display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:700; letter-spacing:.03em; padding:4px 10px; border-radius:999px; white-space:nowrap;}
 .pill.borrador{background:var(--surface-2); color:var(--muted); border:1px solid var(--line);}
 .pill.pendiente{background:var(--warn-wash); color:var(--warn);}
@@ -680,6 +682,7 @@ dialog h2{font-family:var(--display); font-size:18px; margin:0;}
   </div>
   <div class="banner no-print" id="protBanner" hidden><span id="protBannerTxt"></span><button class="btn sm" type="button" id="protBannerBtn">Ver la versión actual</button></div>
   <div class="bar-status no-print" id="protBar">
+    <button class="btn volver" type="button" id="btnVolver" hidden>Volver</button>
     <span class="pill nuevo" id="protPill">Nuevo</span>
     <div class="actions">
       <button class="btn ghost solo-bio" type="button" id="btnMarcarTodo" title="Marca SI en la verificación, las condiciones de seguridad y las actividades">Marcar todo como cumple</button>
@@ -2697,6 +2700,7 @@ function refrescarEquipoActual(){
 }
 function setView(v){
   if(v!=="rep") cerrarAnio();
+  if(v!=="prot" && typeof volverA!=="undefined" && volverA){ volverA = null; pintarVolver(); }
   const map = {inv:"viewInv", gen:"viewGen", rep:"viewRep", prot:"viewProt", hoja:"viewHoja", plan:"viewPlan", tecno:"viewTecno"};
   const tabActiva = v==="rep" ? "inv" : v;
   Object.keys(map).forEach(k=>{ $(map[k]).classList.toggle("active", k===v); const tb = document.querySelector(`.tab[data-view="${k}"]`); if(tb) tb.classList.toggle("active", k===tabActiva); });
@@ -2983,10 +2987,31 @@ async function pdfAnio(it, anio){
     toast(omitidos.length ? "PDF descargado. No se pudo incluir: " + omitidos.join(", ") : "PDF descargado: " + nombre, 5000);
   }catch(e){ toast("No se pudo generar el PDF: " + errMsg(e), 4500); }
 }
+let volverA = null;   // desde dónde se abrió el protocolo (para el botón "Volver")
+function recordarOrigen(){
+  if(!$("viewRep").classList.contains("active")) return;
+  const enCarpeta = $("repModal").open && repAnioAbierto;
+  volverA = {uid: currentUid, anio: enCarpeta ? repAnioAbierto : null, scroll: enCarpeta ? $("repModalBody").scrollTop : window.scrollY};
+  pintarVolver();
+}
+function pintarVolver(){
+  const b = $("btnVolver"); b.hidden = !volverA;
+  if(volverA) b.textContent = volverA.anio ? `Volver a la carpeta ${volverA.anio}` : "Volver a los reportes";
+}
+function volverAOrigen(){
+  if(!volverA) return;
+  if(protDirty && protEditableAhora() && !confirm("Tienes cambios sin guardar en este protocolo. ¿Salir sin guardar?")) return;
+  const o = volverA; volverA = null; pintarVolver(); protDirty = false;
+  if(o.uid && o.uid!==currentUid) selectEquipo(o.uid, true);
+  setView("rep"); renderReportes();
+  if(o.anio && repGrupos[o.anio]){ abrirAnio(o.anio); requestAnimationFrame(()=>{ $("repModalBody").scrollTop = o.scroll||0; }); }
+  else requestAnimationFrame(()=> window.scrollTo(0, o.scroll||0));
+}
 function verReporte(pid){
   const row = protocolos.find(p=>p.id===pid); if(!row) return;
   if(protDirty && protEditableAhora() && !(protActual && protActual.id===pid) && !confirm("Tienes cambios sin guardar en el protocolo abierto. ¿Descartarlos?")) return;
   if(row.equipo_id!==currentUid){ selectEquipo(row.equipo_id); if(currentUid!==row.equipo_id) return; }
+  recordarOrigen();
   cerrarAnio(); setView("prot"); abrirProtocolo(row);
 }
 function clonarProtocolos(rows){
@@ -3564,7 +3589,8 @@ $("btnRepVolver").addEventListener("click", ()=> setView("inv"));
 $("btnRepCargar").addEventListener("click", ()=>{ if(isBio()) abrirCarga(); });
 $("btnCargaCancelar").addEventListener("click", ()=> $("cargaPanel").hidden = true);
 $("btnSubir").addEventListener("click", subirReporte);
-$("btnRepNuevo").addEventListener("click", ()=>{ setView("prot"); abrirPorDefecto(); });
+$("btnRepNuevo").addEventListener("click", ()=>{ recordarOrigen(); setView("prot"); abrirPorDefecto(); });
+$("btnVolver").addEventListener("click", volverAOrigen);
 $("repModalCerrar").addEventListener("click", cerrarAnio);
 $("repModal").addEventListener("close", ()=>{ document.body.appendChild($("toast")); const an = repAnioAbierto; repAnioAbierto = null;
   const card = an && $("viewRep").classList.contains("active") ? document.querySelector(`[data-abrir-anio="${CSS.escape(an)}"]`) : null; if(card) card.focus(); });
