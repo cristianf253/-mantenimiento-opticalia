@@ -537,7 +537,7 @@ dialog h2{font-family:var(--display); font-size:18px; margin:0;}
     <nav class="tabs" role="tablist">
       <button class="tab active" type="button" data-view="inv" id="tabInv">Equipos</button>
       <button class="tab" type="button" data-view="gen" id="tabGen"><span class="solo-bio">Inventario General</span><span class="solo-opt">Inventario</span></button>
-      <button class="tab" type="button" data-view="prot" id="tabProt">Protocolo</button>
+      <button class="tab" type="button" data-view="prot" hidden id="tabProt">Protocolo</button>
       <button class="tab" type="button" data-view="hoja" id="tabHoja">Hoja de vida</button>
       <button class="tab" type="button" data-view="plan" id="tabPlan">Plan de Mantenimiento</button>
       <button class="tab" type="button" data-view="tecno" id="tabTecno">Tecnovigilancia</button>
@@ -2346,7 +2346,7 @@ async function generarDocumentacion(item, genH, genP){
   hojaDirty = false; renderHoja(item); abrirPorDefecto(); renderInventario();
   const box = $("genResult");
   box.innerHTML = `<div><b>Equipo N° ${esc(item.n)} · ${esc(item.equipo)} agregado.</b> ${hechos.length ? "Se generó: " + esc(hechos.join(" y ")) + "." : ""}${fallos.length ? " No se pudo generar: " + esc(fallos.join(" y ")) + "." : ""}</div>
-    <div class="actions">${hechos.some(x=>/hoja/.test(x)) ? `<button class="btn sm" type="button" data-go="hoja">Ver hoja de vida</button>` : ""}${hechos.some(x=>/protocolo/.test(x)) ? `<button class="btn sm" type="button" data-go="prot">Diligenciar protocolo</button>` : ""}<button class="btn sm ghost" type="button" data-go="cerrar">Cerrar</button></div>`;
+    <div class="actions">${hechos.some(x=>/hoja/.test(x)) ? `<button class="btn sm" type="button" data-go="hoja">Ver hoja de vida</button>` : ""}${hechos.some(x=>/protocolo/.test(x)) ? `<button class="btn sm" type="button" data-go="prot">Ver reportes de mantenimiento</button>` : ""}<button class="btn sm ghost" type="button" data-go="cerrar">Cerrar</button></div>`;
   box.dataset.uid = item.id; box.hidden = false;
   toast(`Equipo ${item.n} agregado` + (hechos.length ? " con su documentación" : ""));
 }
@@ -2741,7 +2741,7 @@ function setView(v){
   if(v!=="rep") cerrarAnio();
   if(v!=="prot" && typeof volverA!=="undefined" && volverA){ volverA = null; pintarVolver(); }
   const map = {inv:"viewInv", gen:"viewGen", rep:"viewRep", prot:"viewProt", hoja:"viewHoja", plan:"viewPlan", tecno:"viewTecno", capa:"viewCapa"};
-  const tabActiva = v==="rep" ? "inv" : v;
+  const tabActiva = (v==="rep" || v==="prot") ? "inv" : v;
   Object.keys(map).forEach(k=>{ $(map[k]).classList.toggle("active", k===v); const tb = document.querySelector(`.tab[data-view="${k}"]`); if(tb) tb.classList.toggle("active", k===tabActiva); });
   if(v==="hoja") mostrarHojaLista();
   if(v==="plan" || v==="tecno" || v==="capa") renderDocs();
@@ -3662,7 +3662,7 @@ $("viewRep").addEventListener("click", ev=>{
 $("genResult").addEventListener("click", ev=>{
   const b = ev.target.closest("[data-go]"); if(!b) return; const id = $("genResult").dataset.uid;
   if(b.dataset.go==="hoja") abrirHojaDetalle(id);
-  else if(b.dataset.go==="prot"){ selectEquipo(id); if(currentUid===id){ setView("prot"); abrirPorDefecto(); } }
+  else if(b.dataset.go==="prot"){ abrirReportes(id); }
   $("genResult").hidden = true;
 });
 $("cFirmaVoInput").addEventListener("change", async ev=>{
