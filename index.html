@@ -422,6 +422,8 @@ canvas.sig{display:block; width:100%; height:110px; border:1px solid var(--p-lin
 .live.on{background:#4BE08A;}
 .session button{border:1px solid rgba(255,255,255,.45); background:transparent; color:#fff; font-size:12.5px; font-weight:600; padding:5px 11px; border-radius:999px; cursor:pointer;}
 .session button:hover{background:rgba(255,255,255,.14);}
+.session .inact{font-size:12px; font-weight:600; font-variant-numeric:tabular-nums; padding:5px 10px; border-radius:999px; background:rgba(255,255,255,.10); white-space:nowrap;}
+.session .inact.alerta{background:#F5C04A; color:#063B52;}
 #login{min-height:100vh; display:flex; align-items:center; justify-content:center; background:var(--brand);
   padding-left:max(16px,env(safe-area-inset-left,0px)); padding-right:max(16px,env(safe-area-inset-right,0px)); padding-block:32px;}
 .login-card{background:var(--surface); color:var(--fg); width:100%; max-width:400px; border-radius:16px; overflow:hidden; box-shadow:0 20px 50px rgba(0,40,60,.35);}
@@ -528,6 +530,7 @@ dialog h2{font-family:var(--display); font-size:18px; margin:0;}
         <span class="who"><span class="live" id="liveDot" title="Conectando…"></span><span id="sessUser">—</span></span>
         <button type="button" id="btnSol" class="solo-bio" title="Solicitudes de recuperación de contraseña">Solicitudes<span class="badge" id="solBadge" hidden>0</span></button>
         <button type="button" id="btnPass" class="solo-bio">Cambiar contraseña</button>
+        <span class="inact" id="inactTxt" title="La sesión se cierra sola tras 10 minutos sin actividad. Cualquier clic o tecla reinicia el contador.">10:00</span>
         <button type="button" id="btnSalir">Salir</button>
       </div>
     </div>
@@ -3122,7 +3125,7 @@ async function ingresar(ev){
   $("lPass").value = "";
   await iniciarSesion(data.session);
 }
-async function iniciarSesion(session){
+async function iniciarSesion(session, restaurando){
   ME = session.user;
   const {data: perfil, error} = await sb.from("perfiles").select("*").eq("user_id", ME.id).maybeSingle();
   if(error || !perfil){ await sb.auth.signOut(); mostrarLogin(error ? errMsg(error) : "Este usuario no tiene un rol asignado."); return; }
@@ -3139,7 +3142,8 @@ async function iniciarSesion(session){
   $("login").hidden = true; $("app").hidden = false;
   await cargarTodo();
   suscribir();
-  setView("inv");
+  iniciarRelojInact();
+  restaurarEstado();
   if(ROL==="biomedico") sembrarDocumentos().then(()=> sembrarReportes2025());
   if(ROL==="biomedico") cargarSolicitudes(true);
   if(ROL==="opticalia"){ const pend = protocolos.filter(p=>p.estado==="pendiente").length; if(pend) toast(`Tienes ${pend} protocolo${pend>1?"s":""} pendiente${pend>1?"s":""} de aprobación`, 4500); }
@@ -3510,7 +3514,8 @@ $("btnSalir").addEventListener("click", async ()=>{
   if(hayCambios() && !confirm("Tienes cambios sin guardar. ¿Salir de todas formas?")) return;
   if(canal) sb.removeChannel(canal); canal = null;
   cerrarVisor();
-  await sb.auth.signOut(); protDirty = hojaDirty = false; currentUid = null; protActual = null; mostrarLogin();
+  clearInterval(relojInact); lsDel(KEY_ACT); lsDel(KEY_EST);
+  await sb.auth.signOut(); ME = null; protDirty = hojaDirty = false; currentUid = null; protActual = null; mostrarLogin();
 });
 $("btnPass").addEventListener("click", ()=>{ $("np1").value=""; $("np2").value=""; $("passErr").textContent=""; $("dlgPass").showModal(); });
 $("btnPassOk").addEventListener("click", async ()=>{
@@ -3689,13 +3694,77 @@ window.addEventListener("beforeunload", ev=>{ if(hayCambios()){ ev.preventDefaul
 document.querySelectorAll("canvas.sig").forEach(c=> pads[c.id] = setupPad(c));
 document.querySelectorAll(".sig-clear").forEach(b=> b.addEventListener("click", ()=>{ const p = pads[b.dataset.target]; if(p){ p.clear(); marcarCambio(b); } }));
 fillTipoSelect();
+/* ---------- Sesión: cierre por inactividad y volver al mismo lugar ---------- */
+const INACT_MS = 10*60*1000, KEY_ACT = "opticalia-mtto-actividad", KEY_EST = "opticalia-mtto-estado";
+const VISTAS = {inv:"viewInv", gen:"viewGen", rep:"viewRep", prot:"viewProt", hoja:"viewHoja", plan:"viewPlan", tecno:"viewTecno"};
+const lsGet = k => { try{ return localStorage.getItem(k); }catch(e){ return null; } };
+const lsSet = (k,v) => { try{ localStorage.setItem(k, v); }catch(e){} };
+const lsDel = k => { try{ localStorage.removeItem(k); }catch(e){} };
+const almacenSesion = {getItem:lsGet, setItem:lsSet, removeItem:lsDel};
+let ultimaEscritura = 0, avisoInact = false, relojInact = null;
+function sesionActiva(){ return !!ME && !$("app").hidden; }
+function marcarActividad(){
+  if(!sesionActiva()) return;
+  const ahora = Date.now(); avisoInact = false;
+  if(ahora - ultimaEscritura > 3000){ ultimaEscritura = ahora; lsSet(KEY_ACT, String(ahora)); }
+}
+function restanteInact(){ const t = Number(lsGet(KEY_ACT)) || Date.now(); return INACT_MS - (Date.now() - t); }
+function estadoActual(){
+  const v = Object.keys(VISTAS).find(k=> $(VISTAS[k]).classList.contains("active")) || "inv";
+  return {u: ME && ME.id, view:v, uid:currentUid, prot: protActual ? protActual.id : null,
+    anio: $("repModal").open ? repAnioAbierto : null, hoja: (v==="hoja" && !$("hojaDetalle").hidden) ? currentUid : null,
+    volverA, scroll: window.scrollY};
+}
+function guardarEstado(){ if(sesionActiva()) lsSet(KEY_EST, JSON.stringify(estadoActual())); }
+function restaurarEstado(){
+  let e = null; try{ e = JSON.parse(lsGet(KEY_EST) || "null"); }catch(x){}
+  if(!e || e.u !== ME.id){ setView("inv"); return; }
+  if(e.uid && equipos.some(x=>x.id===e.uid)) selectEquipo(e.uid, true);
+  setView(VISTAS[e.view] ? e.view : "inv");
+  if(e.view==="rep"){ renderReportes(); if(e.anio && repGrupos[e.anio]) abrirAnio(e.anio); }
+  if(e.view==="prot"){ const r = e.prot && protocolos.find(p=>p.id===e.prot); if(r) abrirProtocolo(r); else abrirPorDefecto(); volverA = e.volverA || null; pintarVolver(); }
+  if(e.view==="hoja" && e.hoja && equipos.some(x=>x.id===e.hoja)) abrirHojaDetalle(e.hoja);
+  requestAnimationFrame(()=> window.scrollTo(0, e.scroll||0));
+}
+function pintarInact(){
+  if(!sesionActiva()) return;
+  const r = Math.max(0, restanteInact());
+  const m = Math.floor(r/60000), sg = Math.floor((r%60000)/1000);
+  const el = $("inactTxt"); el.textContent = `Cierre en ${m}:${String(sg).padStart(2,"0")}`; el.classList.toggle("alerta", r <= 60000);
+  if(r <= 60000 && !avisoInact){ avisoInact = true; toast("La sesión se cerrará en 1 minuto por inactividad. Haz clic en cualquier parte para continuar.", 6000); }
+  if(r <= 0) cerrarPorInactividad();
+}
+async function cerrarPorInactividad(){
+  clearInterval(relojInact); guardarEstado();
+  if(canal) sb.removeChannel(canal); canal = null;
+  try{ cerrarVisor(); }catch(e){}
+  protDirty = hojaDirty = false;
+  await sb.auth.signOut({scope:"local"});
+  ME = null; mostrarLogin("La sesión se cerró por 10 minutos de inactividad. Ingresa de nuevo para continuar donde estabas.");
+}
+function iniciarRelojInact(){
+  lsSet(KEY_ACT, String(Date.now())); ultimaEscritura = Date.now(); avisoInact = false;
+  clearInterval(relojInact); relojInact = setInterval(()=>{ pintarInact(); guardarEstado(); }, 1000); pintarInact();
+}
+["pointerdown","keydown","wheel","touchstart","input"].forEach(ev=> window.addEventListener(ev, marcarActividad, {passive:true, capture:true}));
+window.addEventListener("pagehide", guardarEstado);
+document.addEventListener("visibilitychange", ()=>{ if(document.visibilityState==="visible" && sesionActiva()) pintarInact(); });
+
 (async function arrancar(){
   if(!window.supabase || !window.supabase.createClient){ mostrarLogin("No se pudo cargar la conexión. Revisa tu internet y recarga la página."); return; }
-  try{ Object.keys(localStorage).filter(k=> k==="opticalia-mtto-auth" || /^sb-.*-auth-token$/.test(k)).forEach(k=> localStorage.removeItem(k)); }catch(e){}
-  try{ Object.keys(sessionStorage).filter(k=> k==="opticalia-mtto-auth").forEach(k=> sessionStorage.removeItem(k)); }catch(e){}
-  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {auth:{persistSession:false, autoRefreshToken:true, detectSessionInUrl:false}});
-  sb.auth.onAuthStateChange((evento)=>{ if(evento==="SIGNED_OUT" && !$("app").hidden) mostrarLogin("La sesión se cerró."); });
-  mostrarLogin();
+  try{ Object.keys(localStorage).filter(k=> /^sb-.*-auth-token$/.test(k)).forEach(k=> localStorage.removeItem(k)); }catch(e){}
+  sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {auth:{persistSession:true, storage:almacenSesion, storageKey:"opticalia-mtto-auth", autoRefreshToken:true, detectSessionInUrl:false}});
+  sb.auth.onAuthStateChange((evento)=>{ if(evento==="SIGNED_OUT" && !$("app").hidden){ ME = null; mostrarLogin("La sesión se cerró."); } });
+  let session = null;
+  try{ ({data:{session}} = await sb.auth.getSession()); }catch(e){}
+  const ultima = Number(lsGet(KEY_ACT)) || 0;
+  if(session && ultima && Date.now() - ultima < INACT_MS){
+    $("login").hidden = true;
+    await iniciarSesion(session, true);
+  } else {
+    if(session) await sb.auth.signOut({scope:"local"});
+    mostrarLogin(session ? "La sesión se cerró por inactividad. Ingresa de nuevo para continuar donde estabas." : "");
+  }
 })();
 
 </script>
