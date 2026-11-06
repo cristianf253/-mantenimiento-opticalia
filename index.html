@@ -541,6 +541,7 @@ dialog h2{font-family:var(--display); font-size:18px; margin:0;}
       <button class="tab" type="button" data-view="hoja" id="tabHoja">Hoja de vida</button>
       <button class="tab" type="button" data-view="plan" id="tabPlan">Plan de Mantenimiento</button>
       <button class="tab" type="button" data-view="tecno" id="tabTecno">Tecnovigilancia</button>
+      <button class="tab" type="button" data-view="capa" id="tabCapa">Capacitación</button>
     </nav>
   </div>
 </header>
@@ -1073,6 +1074,27 @@ dialog h2{font-family:var(--display); font-size:18px; margin:0;}
     <p class="hint" style="margin-top:8px;">Solo archivos PDF de hasta 20 MB. Opticalia lo podrá visualizar en línea.</p>
   </div>
   <div class="doc-list" id="docList-tecno"></div>
+</section>
+<section class="view wrap" id="viewCapa">
+  <div class="inv-head">
+    <div><h1>Capacitación</h1><p>Procedimiento, cronograma y registros de capacitación en uso seguro de dispositivos médicos.</p><p class="hint solo-opt">Puedes consultar los documentos en línea. Solo Biomédicos puede agregarlos, eliminarlos o descargarlos.</p></div>
+    <div class="actions"><button class="btn primary solo-bio" type="button" data-doc-add="capa">+ Agregar documento</button></div>
+  </div>
+  <div class="panel solo-bio doc-panel" id="docPanel-capa" hidden>
+    <h2>Agregar documento a Capacitación</h2>
+    <div class="form-grid">
+      <div class="field doc-archivo"><label for="docArchivo-capa">Archivo PDF *</label><input id="docArchivo-capa" type="file" accept="application/pdf,.pdf"></div>
+      <div class="field doc-titulo"><label for="docTitulo-capa">Título del documento *</label><input id="docTitulo-capa" type="text" maxlength="200" placeholder="Ej: Lista de asistencia capacitación marzo 2027"></div>
+      <div class="field doc-desc"><label for="docDesc-capa">Descripción (opcional)</label><input id="docDesc-capa" type="text" maxlength="300" placeholder="Ej: Versión 02 · Vigencia 2027"></div>
+    </div>
+    <div class="form-actions">
+      <button class="btn primary" type="button" data-doc-subir="capa">Agregar documento</button>
+      <button class="btn ghost" type="button" data-doc-cancel="capa">Cancelar</button>
+      <span class="form-error" id="docError-capa"></span>
+    </div>
+    <p class="hint" style="margin-top:8px;">Solo archivos PDF de hasta 20 MB. Opticalia lo podrá visualizar en línea.</p>
+  </div>
+  <div class="doc-list" id="docList-capa"></div>
 </section>
 </main>
 <div class="visor" id="visor" hidden role="dialog" aria-modal="true" aria-labelledby="visorTitulo">
@@ -2718,11 +2740,11 @@ function refrescarEquipoActual(){
 function setView(v){
   if(v!=="rep") cerrarAnio();
   if(v!=="prot" && typeof volverA!=="undefined" && volverA){ volverA = null; pintarVolver(); }
-  const map = {inv:"viewInv", gen:"viewGen", rep:"viewRep", prot:"viewProt", hoja:"viewHoja", plan:"viewPlan", tecno:"viewTecno"};
+  const map = {inv:"viewInv", gen:"viewGen", rep:"viewRep", prot:"viewProt", hoja:"viewHoja", plan:"viewPlan", tecno:"viewTecno", capa:"viewCapa"};
   const tabActiva = v==="rep" ? "inv" : v;
   Object.keys(map).forEach(k=>{ $(map[k]).classList.toggle("active", k===v); const tb = document.querySelector(`.tab[data-view="${k}"]`); if(tb) tb.classList.toggle("active", k===tabActiva); });
   if(v==="hoja") mostrarHojaLista();
-  if(v==="plan" || v==="tecno") renderDocs();
+  if(v==="plan" || v==="tecno" || v==="capa") renderDocs();
   if(v!=="inv" && !currentItem() && equipos.length) selectEquipo(equipos[0].id, true);
   requestAnimationFrame(()=> Object.values(pads).forEach(p=>p.resize()));
   window.scrollTo(0,0);
@@ -3291,13 +3313,16 @@ async function guardarConfig(){
    13b. DOCUMENTOS: PLAN DE MANTENIMIENTO Y TECNOVIGILANCIA
    Opticalia: solo visualización en línea. Biomédicos: ver, agregar, eliminar y descargar.
    ===================================================================== */
-const DOC_CAT = {plan:{db:"plan", nombre:"Plan de Mantenimiento"}, tecno:{db:"tecnovigilancia", nombre:"Tecnovigilancia"}};
+const DOC_CAT = {plan:{db:"plan", nombre:"Plan de Mantenimiento"}, tecno:{db:"tecnovigilancia", nombre:"Tecnovigilancia"}, capa:{db:"capacitacion", nombre:"Capacitación"}};
 const catDeDb = db => Object.keys(DOC_CAT).find(k=> DOC_CAT[k].db===db);
 const DOC_SEMILLAS = [
   {clave:"plan_mantenimiento_preventivo_v2", cat:"plan", titulo:"Plan de Mantenimiento Preventivo de Equipos Biomédicos",
    descripcion:"Opticalia · Óptica Jade IPS · Versión 01 · Vigencia: 07 de julio de 2025 – 01 de diciembre de 2025", nombre_archivo:"Plan_Mantenimiento_Preventivo_Opticalia_Jade_v2.pdf", b64:""},
   {clave:"manual_tecnovigilancia_v1", cat:"tecno", titulo:"Manual de Tecnovigilancia",
-   descripcion:"Programa de vigilancia de eventos e incidentes adversos asociados al uso de dispositivos médicos · Versión 01 · Vigencia 2026", nombre_archivo:"Manual_Tecnovigilancia_Opticalia_Jade.pdf", b64:""}
+   descripcion:"Programa de vigilancia de eventos e incidentes adversos asociados al uso de dispositivos médicos · Versión 01 · Vigencia 2026", nombre_archivo:"Manual_Tecnovigilancia_Opticalia_Jade.pdf", b64:""},
+  {clave:"procedimiento_capacitacion_v1", cat:"capa", titulo:"Procedimiento de Capacitación en Dispositivos Médicos",
+   descripcion:"Uso seguro de equipos biomédicos, equipos del taller óptico y dispositivos médicos que se dispensan · Versión 01 · 29/10/2026 · Vigencia 2026",
+   nombre_archivo:"Procedimiento_Capacitacion_Dispositivos_Medicos_Opticalia_Jade.pdf", url:"docs/Procedimiento_Capacitacion_Dispositivos_Medicos_Opticalia_Jade.pdf"}
 ];
 /* Reportes 2025 en PDF (formato físico) asignados a cada equipo según serie, marca, modelo, nombre y ubicación del reporte.
    Se cargan una sola vez, al ingresar Biomédicos; si luego se elimina alguno, no se vuelve a cargar. */
@@ -3342,11 +3367,14 @@ async function sembrarDocumentos(){
     if(ya.error) return;
     const hechas = new Set((ya.data||[]).map(r=>r.clave));
     for(const s of DOC_SEMILLAS){
-      if(hechas.has(s.clave) || !s.b64 || s.b64.startsWith("__")) continue;
+      if(hechas.has(s.clave) || (!s.url && (!s.b64 || s.b64.startsWith("__")))) continue;
       const lock = await sb.from("documentos_semillas").insert({clave:s.clave});
       if(lock.error) continue;                       // otra sesión ya lo está cargando
-      const ruta = `${DOC_CAT[s.cat].db}/${s.clave}.pdf`; const blob = b64aBlob(s.b64);
+      const ruta = `${DOC_CAT[s.cat].db}/${s.clave}.pdf`;
       try{
+        let blob;
+        if(s.url){ const r = await fetch(s.url, {cache:"no-store"}); if(!r.ok) throw new Error("No se pudo descargar " + s.url); blob = new Blob([await r.arrayBuffer()], {type:"application/pdf"}); }
+        else blob = b64aBlob(s.b64);
         const up = await sb.storage.from("documentos").upload(ruta, blob, {contentType:"application/pdf", upsert:true});
         if(up.error) throw up.error;
         const ins = await sb.from("documentos").insert({categoria:DOC_CAT[s.cat].db, titulo:s.titulo, descripcion:s.descripcion, ruta, nombre_archivo:s.nombre_archivo, tamano:blob.size}).select().single();
@@ -3718,7 +3746,7 @@ document.querySelectorAll(".sig-clear").forEach(b=> b.addEventListener("click", 
 fillTipoSelect();
 /* ---------- Sesión: cierre por inactividad y volver al mismo lugar ---------- */
 const INACT_MS = 10*60*1000, KEY_ACT = "opticalia-mtto-actividad", KEY_EST = "opticalia-mtto-estado";
-const VISTAS = {inv:"viewInv", gen:"viewGen", rep:"viewRep", prot:"viewProt", hoja:"viewHoja", plan:"viewPlan", tecno:"viewTecno"};
+const VISTAS = {inv:"viewInv", gen:"viewGen", rep:"viewRep", prot:"viewProt", hoja:"viewHoja", plan:"viewPlan", tecno:"viewTecno", capa:"viewCapa"};
 const lsGet = k => { try{ return localStorage.getItem(k); }catch(e){ return null; } };
 const lsSet = (k,v) => { try{ localStorage.setItem(k, v); }catch(e){} };
 const lsDel = k => { try{ localStorage.removeItem(k); }catch(e){} };
